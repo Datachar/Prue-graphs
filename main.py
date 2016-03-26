@@ -101,7 +101,8 @@ def new_draw(datas, header_datas):
     ylabel = list(datas[0].keys())
     y = np.array([list(val.values()) for val in datas])
     plt.subplot(3, 1, 1)
-    plt.title('Facebook Page for Marketing',size=25 , weight='heavy')
+    plt.subplots_adjust(hspace=.001)
+    plt.title('Facebook Page for Marketing', size=25, weight='heavy')
     x_step = np.arange(len(datas))
     y_step = np.arange(0, 100, 10)
     width = 0.85
@@ -111,22 +112,23 @@ def new_draw(datas, header_datas):
         data = [y[j][i] for j in range(len(y))]
         free_data = [(100 - y[j][i]) for j in range(len(y))]
         plt.subplot(3, 1, i + 1)
+        plt.subplots_adjust(hspace=.001)
         plt.ylabel(ylabel[i], rotation='horizontal', horizontalalignment='right')
-        plt.bar(x_step, data, width, color=colors[i],label='787')
+        plt.bar(x_step, data, width, color=colors[i], label='787')
         text = ["{:10.1f}%".format(d) for d in data]
         for i in range(len(y)):
-            plt.text(x_step[i]+width/4, data[i]-5, text[i], horizontalalignment='center',
+            plt.text(x_step[i] + width / 4, data[i] - 5, text[i], horizontalalignment='center',
                      verticalalignment='center', color='black', weight='bold', size=6)
         plt.bar(x_step, free_data, width, color='w', bottom=data)
         plt.xticks(x_step, '')
         plt.yticks(y_step, '')
     name_subcategory = [data['Subcategory'] for data in header_datas]
-    plt.xticks(x_step+width/2, name_subcategory, rotation=90, size=7)
+    plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=7)
     plt.xlabel(header_datas[0]['Category'])
     fig = plt.gcf()
     fig.set_size_inches(18.5, 15.5)
-    plt.savefig(header_datas[0]['Category'] + '.png', dpi=100)
-    #plt.show()
+    # plt.savefig(header_datas[0]['Category'] + '.png', dpi=100)
+    plt.show()
 
 
 if __name__ == '__main__':
