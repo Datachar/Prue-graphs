@@ -132,8 +132,8 @@ def new_draw(df,header_datas, all_data):
             plt.xticks(x_step,)
             plt.yticks(y_step, '')
         name_subcategory = [data['Subcategory'] for data in header_datas if str(data['Category']) == str(all_category[k-1])]
-        plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=7)
-        plt.xlabel(all_category[k-1], weight='bold', size=16)
+        plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
+        plt.xlabel(all_category[k-1], weight='bold', size=20)
         size_2 += size_ + 3
     ylabel = list(all_data[0].keys())
     y = np.array([list(val.values()) for val in all_data])
@@ -151,16 +151,16 @@ def new_draw(df,header_datas, all_data):
         plt.bar(x_step, data, width, color=colors[i], label='787')
         text = ["{:10.1f}%".format(d) for d in data]
         for i in range(len(y)):
-            plt.text(x_step[i] + width / 2, data[i] - 5, text[i], horizontalalignment='center',
+            plt.text(x_step[i] + width / 4, data[i] - 5, text[i], horizontalalignment='center',
                      verticalalignment='center', color='black', weight='bold', size=12)
         plt.bar(x_step, free_data, width, color='w', bottom=data)
         plt.xticks(x_step, '')
         plt.yticks(y_step, '')
     name_subcategory = [data['Subcategory'] for data in header_datas]
-    plt.xticks(x_step + width / 4, name_subcategory, rotation=90, size=7)
-    plt.xlabel('All category',weight='bold', size=16)
+    plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
+    plt.xlabel('All category', weight='bold', size=20)
     fig = plt.gcf()
-    fig.set_size_inches(40, 25)
+    fig.set_size_inches(40, 30)
     plt.savefig('Graphs.png', dpi=150)
     #plt.show()
 
