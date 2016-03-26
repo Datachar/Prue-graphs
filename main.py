@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from textwrap import wrap
 import matplotlib.gridspec as gridspec
+import collections
 
 
 def main():
@@ -102,7 +103,7 @@ def create_header(file_path_):
 def new_draw(df,header_datas, all_data):
     all_category = all_file_category(header_datas)
     count = len(all_category)
-    colors = ['#EE5363', '#57CCC6', '#F2B354']
+    colors = ['#EE5363', '#F2B354','#57CCC6']
     width = 1
     y_step = np.arange(0, 100, 10)
     gs = gridspec.GridSpec(8, len(all_data)+2*len(all_category)+5)
@@ -136,16 +137,17 @@ def new_draw(df,header_datas, all_data):
         plt.xlabel(all_category[k-1], weight='bold', size=20)
         size_2 += size_ + 3
     ylabel = list(all_data[0].keys())
-    y = np.array([list(val.values()) for val in all_data])
-    plt.subplot(gs[5,:])
-    plt.subplots_adjust(hspace=.001)
-    plt.title('Facebook Page for Marketing', size=25, weight='heavy')
     x_step = np.arange(len(all_data))
+    y = np.array([list(val.values()) for val in all_data])
     ylabel = ['\n'.join(wrap(l, 20)) for l in ylabel]
+    op = True
     for i in range(3):
         data = [y[j][i] for j in range(len(y))]
         free_data = [(100 - y[j][i]) for j in range(len(y))]
         plt.subplot(gs[i+5,4:40])
+        if op == True:
+            plt.title('Facebook Page for Marketing', size=25, weight='heavy')
+            op = False
         plt.subplots_adjust(hspace=.001)
         plt.ylabel(ylabel[i], rotation='horizontal', horizontalalignment='right')
         plt.bar(x_step, data, width, color=colors[i], label='787')
@@ -158,7 +160,7 @@ def new_draw(df,header_datas, all_data):
         plt.yticks(y_step, '')
     name_subcategory = [data['Subcategory'] for data in header_datas]
     plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
-    plt.xlabel('All category', weight='bold', size=20)
+    plt.xlabel('All categories', weight='bold', size=20)
     fig = plt.gcf()
     fig.set_size_inches(40, 30)
     plt.savefig('Graphs.png', dpi=150)
