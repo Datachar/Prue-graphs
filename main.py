@@ -108,7 +108,6 @@ def draw(df, header_data, all_data):
     width = 1
     y_step = np.arange(0, 100, 10)
     gs = gridspec.GridSpec(8, width_image)
-    print(len(all_data) + 2 * len(all_category) + 5)
     size_2 = 0
     for k in range(1, count + 1):
         datas = create_data_for_category(df, header_data, all_category[k - 1])
@@ -124,7 +123,7 @@ def draw(df, header_data, all_data):
             print(i, size_2, size_2 + size_)
             plt.subplots_adjust(hspace=.001, wspace=0.45)
             plt.subplot(gs[i, size_2: size_2 + size_])
-            plt.ylabel(y_label[i], rotation='horizontal', horizontalalignment='right')
+            plt.ylabel(y_label[i].title(), labelpad=120, rotation='horizontal', horizontalalignment='left', color=colors[i])
             plt.bar(x_step, data, width, color=colors[i], label='787')
             text = ["{:10.1f}%".format(d) for d in data]
             for j in range(len(y)):
@@ -148,18 +147,17 @@ def draw(df, header_data, all_data):
         free_data = [(100 - y[j][i][1]) for j in range(len(y))]
         plt.subplot(gs[i + 5, 2:len(all_data) + 2 * len(all_category)])
         if op:
-            plt.title('Facebook Page for Marketing', size=25, weight='heavy')
+            plt.title('Facebook Page for Marketing - Top 48 Placeholders', size=25, weight='heavy')
             op = False
         plt.subplots_adjust(hspace=.001)
-        plt.ylabel(y_label[i], rotation='horizontal', horizontalalignment='right')
+        plt.ylabel(y_label[i].title(), labelpad=120, rotation='horizontal', horizontalalignment='left', color=colors[i])
         plt.bar(x_step, data, width, color=colors[i], label='787')
+        plt.yticks(y_step, '')
         text = ["{:10.1f}%".format(d) for d in data]
         for j in range(len(y)):
             plt.text(x_step[j] + width / 4, data[j] - 5, text[j], horizontalalignment='center',
                      verticalalignment='center', color='black', weight='bold', size=12)
         plt.bar(x_step, free_data, width, color='w', bottom=data)
-        plt.xticks(x_step, '')
-        plt.yticks(y_step, '')
     name_subcategory = [data['Subcategory'] for data in header_data]
     plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
     plt.xlabel('All categories', weight='bold', size=20)
