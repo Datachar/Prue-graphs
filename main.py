@@ -47,7 +47,8 @@ def main():
     header_data = create_header(file_paths)
     dfs = [pd.read_excel(io=file_path, skiprows=6) for file_path in file_paths]
     all_data = [fb_page_for_marketing(df) for df in dfs]
-    draw(dfs, header_data, all_data)
+    all_draw(dfs, header_data, all_data)
+    draw_category(dfs, header_data)
 
 
 def all_file_category(header_data):
@@ -77,9 +78,9 @@ def fb_page_for_marketing(df):
     have_personal_page /= size_
     have_promotion_page /= size_
     data = {
-        'have a personal Facebook page for marketing': have_personal_page * 100,
-        'have a promotional Facebook page for marketing': have_promotion_page * 100,
-        'do not have a Facebook page for marketing': not_have * 100
+        'Have a Personal Facebook Page For Marketing': have_personal_page * 100,
+        'Have a Promotional Facebook Page For Marketing': have_promotion_page * 100,
+        'Do Not Have a Facebook Page For Marketing': not_have * 100
     }
     return data
 
@@ -100,30 +101,30 @@ def create_header(file_path_):
     return data_
 
 
-def draw(df, header_data, all_data):
+def all_draw(df, header_data, all_data):
     all_category = all_file_category(header_data)
     count = len(all_category)
     colors = ['#EE5363', '#F2B354', '#57CCC6']
-    width_image = len(all_data) + 2 * len(all_category)+5
+    width_image = len(all_data)
     width = 1
     y_step = np.arange(0, 100, 10)
-    gs = gridspec.GridSpec(8, width_image)
+    gs = gridspec.GridSpec(4, width_image)
     size_2 = 0
     for k in range(1, count + 1):
-        datas = create_data_for_category(df, header_data, all_category[k - 1])
-        y_label = sorted(datas[0].items(), key=operator.itemgetter(0))
-        y = [sorted(val.items(), key=operator.itemgetter(0)) for val in datas]
+        data = create_data_for_category(df, header_data, all_category[k - 1])
+        y_label = sorted(data[0].items(), key=operator.itemgetter(0))
+        y = [sorted(val.items(), key=operator.itemgetter(0)) for val in data]
         plt.subplots_adjust(hspace=.001)
-        x_step = np.arange(len(datas))
+        x_step = np.arange(len(data))
         size_ = len(y)
         y_label = ['\n'.join(wrap(l[0], 20)) for l in y_label]
         for i in range(3):
             data = [y[j][i][1] for j in range(len(y))]
             free_data = [(100 - y[j][i][1]) for j in range(len(y))]
-            print(i, size_2, size_2 + size_)
-            plt.subplots_adjust(hspace=.001, wspace=0.45)
-            plt.subplot(gs[i, size_2: size_2 + size_])
-            plt.ylabel(y_label[i].title(), labelpad=120, rotation='horizontal', horizontalalignment='left', color=colors[i])
+            plt.subplot(gs[i, size_2-3*(k-1): size_2 + size_-3*(k-1)])
+            plt.subplots_adjust(hspace=.001, wspace=0.02)
+            if k == 1:
+                plt.ylabel(y_label[i], labelpad=120, rotation='horizontal', horizontalalignment='left', color=colors[i])
             plt.bar(x_step, data, width, color=colors[i], label='787')
             text = ["{:10.1f}%".format(d) for d in data]
             for j in range(len(y)):
@@ -137,33 +138,47 @@ def draw(df, header_data, all_data):
         plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
         plt.xlabel(all_category[k - 1], weight='bold', size=20)
         size_2 += size_ + 3
-    x_step = np.arange(len(all_data))
-    y_label = sorted(all_data[0].items(), key=operator.itemgetter(0))
-    y = [sorted(val.items(), key=operator.itemgetter(0)) for val in all_data]
-    y_label = ['\n'.join(wrap(l[0], 20)) for l in y_label]
-    op = True
-    for i in range(3):
-        data = [y[j][i][1] for j in range(len(y))]
-        free_data = [(100 - y[j][i][1]) for j in range(len(y))]
-        plt.subplot(gs[i + 5, 2:len(all_data) + 2 * len(all_category)])
-        if op:
-            plt.title('Facebook Page for Marketing - Top 48 Placeholders', size=25, weight='heavy')
-            op = False
-        plt.subplots_adjust(hspace=.001)
-        plt.ylabel(y_label[i].title(), labelpad=120, rotation='horizontal', horizontalalignment='left', color=colors[i])
-        plt.bar(x_step, data, width, color=colors[i], label='787')
-        plt.yticks(y_step, '')
-        text = ["{:10.1f}%".format(d) for d in data]
-        for j in range(len(y)):
-            plt.text(x_step[j] + width / 4, data[j] - 5, text[j], horizontalalignment='center',
-                     verticalalignment='center', color='black', weight='bold', size=12)
-        plt.bar(x_step, free_data, width, color='w', bottom=data)
-    name_subcategory = [data['Subcategory'] for data in header_data]
-    plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
-    plt.xlabel('All categories', weight='bold', size=20)
     fig = plt.gcf()
-    fig.set_size_inches(width_image, 30)
-    plt.savefig('Graphs.png', dpi=150)
+    fig.set_size_inches(width_image, 10)
+    plt.savefig('All graphs.png', dpi=150)
+    print("IMAGE SAVE: All graphs.png")
+
+
+def draw_category(df, header_data):
+    all_category = all_file_category(header_data)
+    count = len(all_category)
+    colors = ['#EE5363', '#F2B354', '#57CCC6']
+    width = 1
+    y_step = np.arange(0, 100, 10)
+    for k in range(1, count + 1):
+        data = create_data_for_category(df, header_data, all_category[k - 1])
+        width_image = len(data)
+        fig = plt.figure()
+        fig.set_size_inches(width_image+3, 10)
+        y_label = sorted(data[0].items(), key=operator.itemgetter(0))
+        y = [sorted(val.items(), key=operator.itemgetter(0)) for val in data]
+        fig.subplots_adjust(hspace=.001)
+        x_step = np.arange(len(data))
+        gs = gridspec.GridSpec(4, width_image+4)
+        y_label = ['\n'.join(wrap(l[0], 20)) for l in y_label]
+        for i in range(3):
+            data = [y[j][i][1] for j in range(len(y))]
+            free_data = [(100 - y[j][i][1]) for j in range(len(y))]
+            fig.add_subplot(gs[i, 2:-2])
+            plt.ylabel(y_label[i], labelpad=120, rotation='horizontal', horizontalalignment='left', color=colors[i])
+            plt.bar(x_step, data, width, color=colors[i], label='787')
+            text = ["{:10.1f}%".format(d) for d in data]
+            for j in range(len(y)):
+                plt.text(x_step[j] + width / 4, data[j] - 5, text[j], horizontalalignment='center',
+                         verticalalignment='center', color='black', weight='bold', size=11)
+            plt.bar(x_step, free_data, width, color='w', bottom=data)
+            plt.xticks(x_step, )
+            plt.yticks(y_step, '')
+        name_subcategory = [data['Subcategory'] for data in header_data if str(data['Category']) == str(all_category[k - 1])]
+        plt.xticks(x_step + width / 2, name_subcategory, rotation=90, size=14)
+        plt.xlabel(all_category[k - 1], weight='bold', size=20)
+        print('Image save: ', all_category[k-1] + '.png')
+        fig.savefig(all_category[k-1] + '.png', dpi=80)
 
 
 if __name__ == '__main__':
