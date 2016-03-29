@@ -484,11 +484,11 @@ def linked_in_connections(df):
     have_301_500 = len([i for i in data if 301 <= i <= 500]) / size_
     have_more_500 = len([i for i in data if 500 < i]) / size_
     data = {
-        label[name_graphs[8]][0]: not_have * percent,
-        label[name_graphs[8]][1]: have_1_100 * percent,
-        label[name_graphs[8]][2]: have_101_300 * percent,
-        label[name_graphs[8]][3]: have_301_500 * percent,
-        label[name_graphs[8]][4]: have_more_500 * percent
+        label[name_graphs[11]][0]: not_have * percent,
+        label[name_graphs[11]][1]: have_1_100 * percent,
+        label[name_graphs[11]][2]: have_101_300 * percent,
+        label[name_graphs[11]][3]: have_301_500 * percent,
+        label[name_graphs[11]][4]: have_more_500 * percent
     }
     return data
 
@@ -503,11 +503,11 @@ def linked_in_posts(df):
     have_31_50 = len([i for i in data if 31 <= i <= 50]) / size_
     have_more_50 = len([i for i in data if 50 < i]) / size_
     data = {
-        label[name_graphs[8]][0]: not_have * percent,
-        label[name_graphs[8]][1]: have_1_10 * percent,
-        label[name_graphs[8]][2]: have_11_30 * percent,
-        label[name_graphs[8]][3]: have_31_50 * percent,
-        label[name_graphs[8]][4]: have_more_50 * percent
+        label[name_graphs[12]][0]: not_have * percent,
+        label[name_graphs[12]][1]: have_1_10 * percent,
+        label[name_graphs[12]][2]: have_11_30 * percent,
+        label[name_graphs[12]][3]: have_31_50 * percent,
+        label[name_graphs[12]][4]: have_more_50 * percent
     }
     return data
 
