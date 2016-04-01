@@ -1,16 +1,36 @@
+from __future__ import division
+
 import os
+import sys
 import xlrd
+import time
 import operator
 import numpy as np
 import pandas as pd
+from glob import glob
+from os.path import join
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-name_graphs = ['Facebook/Page', 'Facebook/Likes', 'Facebook/Post',
-               'Twitter/Page', 'Twitter/Tweets', 'Twitter/Followers',
-               'Youtube/Account', 'Youtube/Subscribers', 'Youtube/Videos', 'Youtube/Views',
-               'LinkedIn/Account', 'LinkedIn/Connections', 'LinkedIn/Posts']
+name_graphs = [join('Facebook', 'Page'), join('Facebook', 'Likes'), join('Facebook', 'AVPost'),
+               join('Twitter', 'Page'), join('Twitter', 'Tweets'), join('Twitter', 'Followers'),
+               join('Youtube', 'Account'), join('Youtube', 'Subscribers'), join('Youtube', 'Videos'),
+               join('Youtube', 'Views'),
+               join('LinkedIn', 'Account'), join('LinkedIn', 'Connections'), join('LinkedIn', 'Posts')
+               ]
+
+path_to_output_directory = join(sys.argv[2], time.strftime("%d-%m-%Y"))
+count_ = 0
+while os.path.exists(path_to_output_directory):
+    if count_ == 0:
+        count_ += 1
+        path_to_output_directory = '%s(%s)' % (path_to_output_directory, count_)
+    else:
+        path_to_output_directory = path_to_output_directory[:-(len(str(count_ - 1)) + 2)]
+        path_to_output_directory = '%s(%s)' % (path_to_output_directory, count_)
+    count_ += 1
+name_graphs = [join(path_to_output_directory, name) for name in name_graphs]
 
 title = {
     name_graphs[0]: 'Facebook Page For Marketing - Top 48 Placeholders',
@@ -56,71 +76,30 @@ subcategory_colors = ['gray', 'black']
 
 
 def main():
-    file_paths = [
-        '/home/misha/Downloads/Data Sets 24-03/Business Law.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Communications.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Data & Analytics.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Databases.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Development Tools.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/E-Commerce.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Entrepreneurship.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Finance.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Game Development.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Hardware.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Home Business.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Human Resources.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Industry.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Intuit.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/IT Certification.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Management.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Media.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Mobile Apps.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Motivation.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Network & Security.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Operating Systems.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Operations.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Other.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Programming Languages.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Project Management.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Real Estate.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Salesforce.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Sales.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Self Esteem.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Software Engineering.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Software Testing.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Strategy.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Stress Management.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Web Development.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Apple.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Microsoft.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Google.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_SAP.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Oracle.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Intuit.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Other.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Office Productivity_Salesforce.xlsx',
-        '/home/misha/Downloads/Data Sets 24-03/Development_Web Development.xlsx'
-    ]
-    header_data = create_header(file_paths)
+    file_paths = glob(join(sys.argv[1], '*.xlsx'))
+    header_data, file_paths = create_header(file_paths)
     dfs = [pd.read_excel(io=file_path, skiprows=6) for file_path in file_paths]
     for i, key in enumerate(label.keys()):
-        print(i + 1, '.', key)
-        title[key] = '\n'.join(wrap(title[key], 50))
-        y_label = ['\n'.join(wrap(l, 18)) for l in label[key]]
+        print(str(i + 1) + '. ' + str(key))
+        y_label = ['\n'.join(wrap(l, 16)) for l in label[key]]
         if not os.path.exists(key):
             os.makedirs(key)
         draw_all_category_into_single_file(dfs, header_data, y_label, key)
+        title[key] = '\n'.join(wrap(title[key], 50))
         draw_all_category_into_separate_files(dfs, header_data, y_label, key)
         draw_average_by_categories_into_single_file(dfs, header_data, y_label, key)
 
 
 def draw_all_category_into_single_file(df, header_data, y_label, key):
-    plt.close('all')
     all_category = all_file_category(header_data)
     count_category = len(all_category)
     width_image = len(df)
-    gs = gridspec.GridSpec(len(y_label) + 1, width_image)
+    gs = gridspec.GridSpec(len(y_label) + 2, width_image)
     size_2 = 0
+    max_name_subcategory = max([len(data['Subcategory']) for data in header_data])
+    plt.subplot(gs[0, :])
+    plt.text(0.5 - len(title[key]) / 300, 0.14, title[key], weight='bold', verticalalignment='center', fontsize=25)
+    plt.gca().axison = False
     for count in range(1, count_category + 1):
         data = create_data_for_category(df, header_data, all_category[count - 1], key)
         y = [sorted(val.items(), key=operator.itemgetter(0)) for val in data]
@@ -130,8 +109,8 @@ def draw_all_category_into_single_file(df, header_data, y_label, key):
         for i in range(len(y_label)):
             data = [el[i][1] for el in y]
             free_data = [(100 - el[i][1]) for el in y]
-            plt.subplot(gs[i, size_2 - 3 * (count - 1): size_2 + size_ - 3 * (count - 1)])
-            plt.subplots_adjust(hspace=.001, wspace=0.05)
+            plt.subplot(gs[i + 1, size_2 - 3 * (count - 1): size_2 + size_ - 3 * (count - 1)])
+            plt.subplots_adjust(hspace=.001, wspace=0.15)
             if count == 1:
                 plt.ylabel(y_label[i], labelpad=106 + len(df), rotation='horizontal',
                            horizontalalignment='left', color=bar_colors[i], size=15)
@@ -148,15 +127,17 @@ def draw_all_category_into_single_file(df, header_data, y_label, key):
             plt.yticks(y_step, '')
         name_subcategory = [data['Subcategory'] for data in header_data if
                             str(data['Category']) == str(all_category[count - 1])]
-        plt.xticks(x_step + width_column / 2, name_subcategory, rotation=90,
+        name_subcategory = [(' ' * (max_name_subcategory - len(subcategory) + (count % 2) * 3) + subcategory) for
+                            subcategory in name_subcategory]
+        plt.xticks(x_step + width_column / 2, name_subcategory, rotation=90, fontproperties='monospace',
                    size=14, color=subcategory_colors[count % len(subcategory_colors)])
         plt.xlabel(all_category[count - 1], weight='bold',
                    size=20, color=subcategory_colors[count % len(subcategory_colors)])
         size_2 += size_ + 3
     fig = plt.gcf()
-    fig.set_size_inches(width_image, len(y_label) * 4)
-    plt.savefig(key + '/' + 'All_graphs.png', dpi=150)
-    print("IMAGE SAVE: %s/All graphs.png" % key)
+    fig.set_size_inches(width_image, len(y_label) * 5)
+    plt.savefig(join(key, 'All_graphs.png'), dpi=150)
+    print("IMAGE SAVE: %s All graphs.png" % key)
 
 
 def draw_all_category_into_separate_files(df, header_data, y_label, key):
@@ -177,7 +158,7 @@ def draw_all_category_into_separate_files(df, header_data, y_label, key):
             free_data = [(100 - el[i][1]) for el in y]
             fig.add_subplot(gs[i, 2:-2])
             if i == 0:
-                plt.title(title[key], weight='bold', size=15)
+                plt.title(title[key], weight='bold', size=len(data) + 7)
             plt.ylabel(y_label[i], labelpad=125, rotation='horizontal',
                        horizontalalignment='left', color=bar_colors[i])
             plt.bar(x_step, data, width_column, color=bar_colors[i], label='787')
@@ -195,8 +176,8 @@ def draw_all_category_into_separate_files(df, header_data, y_label, key):
                             if str(data['Category']) == str(all_category[count - 1])]
         plt.xticks(x_step + width_column / 2, name_subcategory, rotation=90, size=14)
         plt.xlabel(all_category[count - 1], weight='bold', size=20)
-        print('Image save: %s/%s' % (key, all_category[count - 1]), '.png')
-        fig.savefig(key + '/' + all_category[count - 1] + '.png', dpi=80)
+        print('Image save: ' + join(key, all_category[count - 1] + '.png'))
+        fig.savefig(join(key, all_category[count - 1] + '.png'), dpi=90)
 
 
 def draw_average_by_categories_into_single_file(df, header_data, y_label, key):
@@ -238,8 +219,8 @@ def draw_average_by_categories_into_single_file(df, header_data, y_label, key):
     plt.xlabel('Average all category', weight='bold', size=20)
     fig = plt.gcf()
     fig.set_size_inches(width_image + 5, len(y_label) * 4)
-    plt.savefig(key + '/Average_all_graphs.png', dpi=150)
-    print("IMAGE SAVE: %s/Average all graphs.png" % key)
+    plt.savefig(join(key, 'Average_all_graphs.png'), dpi=150)
+    print("IMAGE SAVE: %s Average all graphs.png" % key)
 
 
 def create_data_for_category(df, header_data, category, key):
@@ -402,7 +383,7 @@ def youtube_subscribers(df):
     size_ = df['Position on page 1'].count()
     not_have = (size_ - data.count()) / size_
     data = [0 if str(i) == 'nan' else i for i in data]
-    data = [float(i) if not isinstance(i, str) else int(i.replace(',', '')) for i in data]
+    data = [float(str(i).replace(',', '')) for i in data]
     percent = 100
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_1000 = len([i for i in data if 101 <= i <= 1000]) / size_
@@ -424,7 +405,7 @@ def youtube_videos(df):
     percent = 100
     not_have = (size_ - data.count()) / size_
     data = [0 if str(i) == 'nan' else i for i in data]
-    data = [float(i) if not isinstance(i, str) else int(i.replace(',', '')) for i in data]
+    data = [float(str(i).replace(',', '')) for i in data]
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_300 = len([i for i in data if 101 <= i <= 300]) / size_
     have_301_500 = len([i for i in data if 301 <= i <= 500]) / size_
@@ -445,7 +426,7 @@ def youtube_views(df):
     percent = 100
     not_have = (size_ - data.count()) / size_
     data = [0 if str(i) == 'nan' else i for i in data]
-    data = [float(i) if not isinstance(i, str) else int(i.replace(',', '')) for i in data]
+    data = [float(str(i).replace(',', '')) for i in data]
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
     have_10001_100000 = len([i for i in data if 10001 <= i <= 100000]) / size_
@@ -513,19 +494,24 @@ def linked_in_posts(df):
 
 
 def create_header(file_path_):
-    data_ = []
-    for i in range(len(file_path_)):
-        wb = xlrd.open_workbook(file_path_[i])
-        wb = wb.sheet_by_index(0)
-        data = {
-            wb.cell_value(0, 0): wb.cell_value(0, 1),
-            wb.cell_value(1, 0): wb.cell_value(1, 1),
-            wb.cell_value(2, 0): wb.cell_value(2, 1),
-            wb.cell_value(3, 0): wb.cell_value(3, 1),
-            wb.cell_value(4, 0): wb.cell_value(4, 1)
-        }
-        data_.append(data)
-    return data_
+    data = []
+    new_file = []
+    for file in file_path_:
+        try:
+            wb = xlrd.open_workbook(file)
+            wb = wb.sheet_by_index(0)
+            data_ = {
+                wb.cell_value(0, 0): wb.cell_value(0, 1),
+                wb.cell_value(1, 0): wb.cell_value(1, 1),
+                wb.cell_value(2, 0): wb.cell_value(2, 1),
+                wb.cell_value(3, 0): wb.cell_value(3, 1),
+                wb.cell_value(4, 0): wb.cell_value(4, 1)
+            }
+            data.append(data_)
+            new_file.append(file)
+        except:
+            print('cannot read ' + file)
+    return data, new_file
 
 
 def all_file_category(header_data):
