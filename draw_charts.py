@@ -8,10 +8,12 @@ import operator
 import numpy as np
 import pandas as pd
 from glob import glob
+from logging import getLogger
 from os.path import join
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from datachar_armory.os_utils.logging_utils import configure_file_and_stream_logger
 
 name_graphs = [join('Facebook', 'Page'), join('Facebook', 'Likes'), join('Facebook', 'AVPost'),
                join('Twitter', 'Page'), join('Twitter', 'Tweets'), join('Twitter', 'Followers'),
@@ -19,7 +21,8 @@ name_graphs = [join('Facebook', 'Page'), join('Facebook', 'Likes'), join('Facebo
                join('Youtube', 'Views'),
                join('LinkedIn', 'Account'), join('LinkedIn', 'Connections'), join('LinkedIn', 'Posts')
                ]
-
+configure_file_and_stream_logger()
+logger = getLogger()
 path_to_output_directory = join(sys.argv[2], time.strftime("%d-%m-%Y"))
 count_ = 0
 while os.path.exists(path_to_output_directory):
@@ -31,7 +34,6 @@ while os.path.exists(path_to_output_directory):
         path_to_output_directory = '%s(%s)' % (path_to_output_directory, count_)
     count_ += 1
 name_graphs = [join(path_to_output_directory, name) for name in name_graphs]
-
 title = {
     name_graphs[0]: 'Facebook Page For Marketing - Top 48 Placeholders',
     name_graphs[1]: 'Number of Page Likes - Top 48 Positions with Facebook Promotional Page',
@@ -76,11 +78,17 @@ subcategory_colors = ['gray', 'black']
 
 
 def main():
+    logger.info('Read files from ' + sys.argv[1])
     file_paths = glob(join(sys.argv[1], '*.xlsx'))
-    header_data, file_paths = create_header(file_paths)
+    file_paths = [file_path for file_path in file_paths if not os.path.basename(file_path).startswith('~$')]
+    if len(file_paths) == 0:
+        logger.info('No single .xlsx file format in ' + sys.argv[1])
+        return 0
     dfs = [pd.read_excel(io=file_path, skiprows=6) for file_path in file_paths]
+    header_data, file_paths = create_header(file_paths)
+    delete_empty_df(dfs, header_data)
     for i, key in enumerate(label.keys()):
-        print(str(i + 1) + '. ' + str(key))
+        logger.info(str(i + 1) + '. ' + str(key))
         y_label = ['\n'.join(wrap(l, 16)) for l in label[key]]
         if not os.path.exists(key):
             os.makedirs(key)
@@ -98,7 +106,8 @@ def draw_all_category_into_single_file(df, header_data, y_label, key):
     size_2 = 0
     max_name_subcategory = max([len(data['Subcategory']) for data in header_data])
     plt.subplot(gs[0, :])
-    plt.text(0.5 - len(title[key]) / 300, 0.14, title[key], weight='bold', verticalalignment='center', fontsize=25)
+    plt.text(0.5 - len(title[key]) / 300, 0.14, title[key], weight='bold',
+             verticalalignment='center', size=width_image / 1.5)
     plt.gca().axison = False
     for count in range(1, count_category + 1):
         data = create_data_for_category(df, header_data, all_category[count - 1], key)
@@ -110,6 +119,8 @@ def draw_all_category_into_single_file(df, header_data, y_label, key):
             data = [el[i][1] for el in y]
             free_data = [(100 - el[i][1]) for el in y]
             plt.subplot(gs[i + 1, size_2 - 3 * (count - 1): size_2 + size_ - 3 * (count - 1)])
+            plt.xticks(x_step, '')
+            plt.yticks(y_step, '')
             plt.subplots_adjust(hspace=.001, wspace=0.15)
             if count == 1:
                 plt.ylabel(y_label[i], labelpad=106 + len(df), rotation='horizontal',
@@ -123,8 +134,6 @@ def draw_all_category_into_single_file(df, header_data, y_label, key):
                 plt.text(x_step[j] + width_column / 4, height_percent, text[j], horizontalalignment='center',
                          verticalalignment='center', color='black', weight='bold', size=11)
             plt.bar(x_step, free_data, width_column, color='w', bottom=data)
-            plt.xticks(x_step, '')
-            plt.yticks(y_step, '')
         name_subcategory = [data['Subcategory'] for data in header_data if
                             str(data['Category']) == str(all_category[count - 1])]
         name_subcategory = [(' ' * (max_name_subcategory - len(subcategory) + (count % 2) * 3) + subcategory) for
@@ -135,20 +144,21 @@ def draw_all_category_into_single_file(df, header_data, y_label, key):
                    size=20, color=subcategory_colors[count % len(subcategory_colors)])
         size_2 += size_ + 3
     fig = plt.gcf()
-    fig.set_size_inches(width_image, len(y_label) * 5)
+    fig.set_size_inches(width_image, len(y_label) * 5 + (max_name_subcategory - len(y_label)) / 8)
     plt.savefig(join(key, 'All_graphs.png'), dpi=150)
-    print("IMAGE SAVE: %s All graphs.png" % key)
+    logger.info("IMAGE SAVE: %s All graphs.png" % key)
 
 
 def draw_all_category_into_separate_files(df, header_data, y_label, key):
     plt.close('all')
+    max_name_subcategory = max([len(data['Subcategory']) for data in header_data])
     all_category = all_file_category(header_data)
     count_category = len(all_category)
     for count in range(1, count_category + 1):
         data = create_data_for_category(df, header_data, all_category[count - 1], key)
         width_image = len(data)
         fig = plt.figure()
-        fig.set_size_inches(width_image + 3, len(y_label) * 4)
+        fig.set_size_inches(width_image + 3, len(y_label) * 4 + max_name_subcategory / 10)
         y = [sorted(val.items(), key=operator.itemgetter(0)) for val in data]
         fig.subplots_adjust(hspace=.001)
         x_step = np.arange(len(data))
@@ -157,6 +167,8 @@ def draw_all_category_into_separate_files(df, header_data, y_label, key):
             data = [el[i][1] for el in y]
             free_data = [(100 - el[i][1]) for el in y]
             fig.add_subplot(gs[i, 2:-2])
+            plt.xticks(x_step, '')
+            plt.yticks(y_step, '')
             if i == 0:
                 plt.title(title[key], weight='bold', size=len(data) + 7)
             plt.ylabel(y_label[i], labelpad=125, rotation='horizontal',
@@ -170,14 +182,12 @@ def draw_all_category_into_separate_files(df, header_data, y_label, key):
                 plt.text(x_step[j] + width_column / 4, height_percent, text[j], horizontalalignment='center',
                          verticalalignment='center', color='black', weight='bold', size=11)
             plt.bar(x_step, free_data, width_column, color='w', bottom=data)
-            plt.xticks(x_step, '')
-            plt.yticks(y_step, '')
         name_subcategory = [data['Subcategory'] for data in header_data
                             if str(data['Category']) == str(all_category[count - 1])]
         plt.xticks(x_step + width_column / 2, name_subcategory, rotation=90, size=14)
         plt.xlabel(all_category[count - 1], weight='bold', size=20)
-        print('Image save: ' + join(key, all_category[count - 1] + '.png'))
         fig.savefig(join(key, all_category[count - 1] + '.png'), dpi=90)
+        logger.info('Image save: ' + join(key, all_category[count - 1] + '.png'))
 
 
 def draw_average_by_categories_into_single_file(df, header_data, y_label, key):
@@ -199,6 +209,8 @@ def draw_average_by_categories_into_single_file(df, header_data, y_label, key):
         data = [el[i][1] for el in y]
         free_data = [(100 - el[i][1]) for el in y]
         plt.subplot(gs[i, 2:-2])
+        plt.xticks(x_step, '')
+        plt.yticks(y_step, '')
         if i == 0:
             plt.title(title[key], weight='bold', size=len(y) + 10)
         plt.ylabel(y_label[i], labelpad=125, rotation='horizontal', horizontalalignment='left',
@@ -212,15 +224,13 @@ def draw_average_by_categories_into_single_file(df, header_data, y_label, key):
             plt.text(x_step[j] + width_column / 4, height_percent, text[j], horizontalalignment='center',
                      verticalalignment='center', color='black', weight='bold', size=11)
         plt.bar(x_step, free_data, width_column, color='w', bottom=data)
-        plt.xticks(x_step, '')
-        plt.yticks(y_step, '')
     name_subcategory = [data for data in all_category]
     plt.xticks(x_step + width_column / 2, name_subcategory, rotation=90, size=14)
     plt.xlabel('Average all category', weight='bold', size=20)
     fig = plt.gcf()
     fig.set_size_inches(width_image + 5, len(y_label) * 4)
     plt.savefig(join(key, 'Average_all_graphs.png'), dpi=150)
-    print("IMAGE SAVE: %s Average all graphs.png" % key)
+    logger.info("IMAGE SAVE: %s Average all graphs.png" % key)
 
 
 def create_data_for_category(df, header_data, category, key):
@@ -257,11 +267,31 @@ def create_data_for_category(df, header_data, category, key):
     return data
 
 
+def exclusive_instructors(df, data):
+    instructors = list(df['Position on page 1'])
+    data = list(data)
+    count = 0
+    data_count = 0
+    while count != len(instructors) - 1:
+        if instructors[count] == instructors[count + 1]:
+            if str(data[count]) != 'nan':
+                data_count += 1
+            if data[count] == data[count + 1]:
+                instructors.pop(count + 1)
+                data.pop(count + 1)
+            count += 1
+        else:
+            count += 1
+            if str(data[count]) != 'nan':
+                data_count += 1
+    count += 1
+    return data, count, data_count
+
+
 def fb_page(df):
-    data = df['Personal Facebook page?']
-    size_ = df['Position on page 1'].count()
-    not_have = (size_ - data.count())
+    data, size_, data_count = exclusive_instructors(df, df['Personal Facebook page?'])
     have_personal_page = len([i for i in data if i == 'Y'])
+    not_have = size_ - data_count
     have_promotion_page = size_ - not_have - have_personal_page
     not_have /= size_
     have_personal_page /= size_
@@ -275,10 +305,9 @@ def fb_page(df):
 
 
 def fb_likes(df):
-    data = df['FB likes']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['FB likes'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_1000 = len([i for i in data if 101 <= i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
@@ -294,10 +323,9 @@ def fb_likes(df):
 
 
 def fb_average_post(df):
-    data = df['posts per month']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['posts per month'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     have_1_10 = len([i for i in data if 0 < i <= 10]) / size_
     have_11_20 = len([i for i in data if 11 <= i <= 20]) / size_
     have_21_30 = len([i for i in data if 21 <= i <= 30]) / size_
@@ -313,10 +341,9 @@ def fb_average_post(df):
 
 
 def twitter_page(df):
-    data = df['Twitter']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Twitter'])
     percent = 100
-    have_personal_page = data.count()
+    have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
     have_personal_page /= size_
     data = {
@@ -327,10 +354,9 @@ def twitter_page(df):
 
 
 def twitter_tweets(df):
-    data = df['Tweets']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Tweets'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
     have_10001_100000 = len([i for i in data if 10001 <= i <= 100000]) / size_
@@ -346,10 +372,9 @@ def twitter_tweets(df):
 
 
 def twitter_followers(df):
-    data = df['Followers']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Followers'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
     have_10001_100000 = len([i for i in data if 10001 <= i <= 100000]) / size_
@@ -365,10 +390,9 @@ def twitter_followers(df):
 
 
 def youtube_account(df):
-    data = df['Youtube']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Youtube'])
     percent = 100
-    have_personal_page = data.count()
+    have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
     have_personal_page /= size_
     data = {
@@ -379,9 +403,8 @@ def youtube_account(df):
 
 
 def youtube_subscribers(df):
-    data = df['Youtube Subscribers']
-    size_ = df['Position on page 1'].count()
-    not_have = (size_ - data.count()) / size_
+    data, size_, data_count = exclusive_instructors(df, df['Youtube Subscribers'])
+    not_have = (size_ - data_count) / size_
     data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     percent = 100
@@ -400,10 +423,9 @@ def youtube_subscribers(df):
 
 
 def youtube_videos(df):
-    data = df['Youtube Videos']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Youtube Videos'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
@@ -421,10 +443,9 @@ def youtube_videos(df):
 
 
 def youtube_views(df):
-    data = df['Youtube Subscribers']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Youtube Subscribers'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
@@ -442,10 +463,9 @@ def youtube_views(df):
 
 
 def linked_in_account(df):
-    data = df['Linkedin']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Linkedin'])
     percent = 100
-    have_personal_page = data.count()
+    have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
     have_personal_page /= size_
     data = {
@@ -456,10 +476,9 @@ def linked_in_account(df):
 
 
 def linked_in_connections(df):
-    data = df['Connections']
-    size_ = df['Position on page 1'].count()
+    data, size_, data_count = exclusive_instructors(df, df['Connections'])
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_300 = len([i for i in data if 101 <= i <= 300]) / size_
     have_301_500 = len([i for i in data if 301 <= i <= 500]) / size_
@@ -475,10 +494,10 @@ def linked_in_connections(df):
 
 
 def linked_in_posts(df):
-    data = df['Posts']
+    data, size_, data_count = exclusive_instructors(df, df['Posts'])
     size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data.count()) / size_
+    not_have = (size_ - data_count) / size_
     have_1_10 = len([i for i in data if 0 < i <= 10]) / size_
     have_11_30 = len([i for i in data if 11 <= i <= 30]) / size_
     have_31_50 = len([i for i in data if 31 <= i <= 50]) / size_
@@ -510,7 +529,7 @@ def create_header(file_path_):
             data.append(data_)
             new_file.append(file)
         except:
-            print('cannot read ' + file)
+            logger.info('cannot read ' + file)
     return data, new_file
 
 
@@ -520,6 +539,14 @@ def all_file_category(header_data):
         if str(i['Category']) not in all_data:
             all_data.append(i['Category'])
     return all_data
+
+
+def delete_empty_df(dfs, header_data):
+    for i, df in enumerate(dfs):
+        if len(df) == 0:
+            logger.info(header_data[i]['Category'] + '_' + header_data[i]['Subcategory'] + ' not have data')
+            dfs.pop(i)
+            header_data.pop(i)
 
 
 if __name__ == '__main__':
