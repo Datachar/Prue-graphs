@@ -35,19 +35,19 @@ while os.path.exists(path_to_output_directory):
     count_ += 1
 name_graphs = [join(path_to_output_directory, name) for name in name_graphs]
 title = {
-    name_graphs[0]: 'Facebook Page For Marketing - Top 48 Placeholders',
-    name_graphs[1]: 'Number of Page Likes - Top 48 Positions with Facebook Promotional Page',
-    name_graphs[2]: 'Average Posts Per Month by Instructor - Top 48 Positions with Facebook Promotional Page',
-    name_graphs[3]: 'Twitter Account for Marketing - Top 48 Positions',
-    name_graphs[4]: 'Total Twitter Tweets - Top 48 Positions with Twitter Account',
-    name_graphs[5]: 'Number of Followers - Top 48 Positions with Twitter Account',
-    name_graphs[6]: 'YouTube Account for Marketing - Top 48 Positions',
-    name_graphs[7]: 'Number of YouTube Subscribers - Top 48  Positions with YouTube Channel',
-    name_graphs[8]: 'Number of YouTube Videos - Top 48 Positions with YouTube Channel',
-    name_graphs[9]: 'Number of YouTube Channel Views - Top 48 Positions with YouTube channel',
-    name_graphs[10]: 'LinkedIn Account - Top 48 Positions',
-    name_graphs[11]: 'Number of Connections - Top 48 Positions with LinkedIn Account',
-    name_graphs[12]: 'Number of Posts - Top 48  Positions with LinkedIn Account',
+    name_graphs[0]: 'Facebook Page For Marketing - Top 50 Placeholders',
+    name_graphs[1]: 'Number of Page Likes - Top 50 Positions with Facebook Promotional Page',
+    name_graphs[2]: 'Average Posts Per Month by Instructor - Top 50 Positions with Facebook Promotional Page',
+    name_graphs[3]: 'Twitter Account for Marketing - Top 50 Positions',
+    name_graphs[4]: 'Total Twitter Tweets - Top 50 Positions with Twitter Account',
+    name_graphs[5]: 'Number of Followers - Top 50 Positions with Twitter Account',
+    name_graphs[6]: 'YouTube Account for Marketing - Top 50 Positions',
+    name_graphs[7]: 'Number of YouTube Subscribers - Top 50  Positions with YouTube Channel',
+    name_graphs[8]: 'Number of YouTube Videos - Top 50 Positions with YouTube Channel',
+    name_graphs[9]: 'Number of YouTube Channel Views - Top 50 Positions with YouTube channel',
+    name_graphs[10]: 'LinkedIn Account - Top 50 Positions',
+    name_graphs[11]: 'Number of Connections - Top 50 Positions with LinkedIn Account',
+    name_graphs[12]: 'Number of Posts - Top 50  Positions with LinkedIn Account',
 
 }
 bar_colors = ['#EE5363', '#57ccc6', '#f2b354', '#7cc576', '#c7cf48']
@@ -96,6 +96,7 @@ def main():
         title[key] = '\n'.join(wrap(title[key], 50))
         draw_all_category_into_separate_files(dfs, header_data, y_label, key)
         draw_average_by_categories_into_single_file(dfs, header_data, y_label, key)
+    logger.info('*'*90)
 
 
 def draw_all_category_into_single_file(df, header_data, y_label, key):
@@ -226,70 +227,83 @@ def draw_average_by_categories_into_single_file(df, header_data, y_label, key):
         plt.bar(x_step, free_data, width_column, color='w', bottom=data)
     name_subcategory = [data for data in all_category]
     plt.xticks(x_step + width_column / 2, name_subcategory, rotation=90, size=14)
-    plt.xlabel('Average all category', weight='bold', size=20)
+    plt.xlabel('Average - All Category', weight='bold', size=20)
     fig = plt.gcf()
     fig.set_size_inches(width_image + 5, len(y_label) * 4)
-    plt.savefig(join(key, 'Average_all_graphs.png'), dpi=150)
-    logger.info("IMAGE SAVE: %s Average all graphs.png" % key)
+    plt.savefig(join(key, 'Average_All_Graphs.png'), dpi=150)
+    logger.info("IMAGE SAVE: %s Average - All Graphs.png" % key)
 
 
 def create_data_for_category(df, header_data, category, key):
     data = []
     for i, df_ in enumerate(df):
-        if header_data[i]['Category'] == category:
-            if key == name_graphs[0]:
-                d = fb_page(df_)
-            elif key == name_graphs[1]:
-                d = fb_likes(df_)
-            elif key == name_graphs[2]:
-                d = fb_average_post(df_)
-            elif key == name_graphs[3]:
-                d = twitter_page(df_)
-            elif key == name_graphs[4]:
-                d = twitter_tweets(df_)
-            elif key == name_graphs[5]:
-                d = twitter_followers(df_)
-            elif key == name_graphs[6]:
-                d = youtube_account(df_)
-            elif key == name_graphs[7]:
-                d = youtube_subscribers(df_)
-            elif key == name_graphs[8]:
-                d = youtube_videos(df_)
-            elif key == name_graphs[9]:
-                d = youtube_views(df_)
-            elif key == name_graphs[10]:
-                d = youtube_views(df_)
-            elif key == name_graphs[11]:
-                d = youtube_views(df_)
-            elif key == name_graphs[12]:
-                d = youtube_views(df_)
-            data.append(d)
+        try:
+            if header_data[i]['Category'] == category:
+                if key == name_graphs[0]:
+                    d = fb_page(df_, header_data[i])
+                elif key == name_graphs[1]:
+                    d = fb_likes(df_)
+                elif key == name_graphs[2]:
+                    d = fb_average_post(df_)
+                elif key == name_graphs[3]:
+                    d = twitter_page(df_, header_data[i])
+                elif key == name_graphs[4]:
+                    d = twitter_tweets(df_)
+                elif key == name_graphs[5]:
+                    d = twitter_followers(df_)
+                elif key == name_graphs[6]:
+                    d = youtube_account(df_, header_data[i])
+                elif key == name_graphs[7]:
+                    d = youtube_subscribers(df_)
+                elif key == name_graphs[8]:
+                    d = youtube_videos(df_)
+                elif key == name_graphs[9]:
+                    d = youtube_views(df_)
+                elif key == name_graphs[10]:
+                    d = linked_in_account(df_, header_data[i])
+                elif key == name_graphs[11]:
+                    d = linked_in_connections(df_)
+                elif key == name_graphs[12]:
+                    d = linked_in_posts(df_)
+                data.append(d)
+        except:
+            logger.info('\nIncorrect data in \"%s_%s.xlsx\"\n%s\nThis file is not displayed' %
+                        (header_data[i]['Category'], header_data[i]['Subcategory']))
     return data
 
 
-def exclusive_instructors(df, data):
+def exclusive_instructors(df, data_which_check, header):
     instructors = list(df['Position on page 1'])
-    data = list(data)
+    column_name = data_which_check.name
+    data_which_check = list(data_which_check)
     count = 0
     data_count = 0
     while count != len(instructors) - 1:
-        if instructors[count] == instructors[count + 1]:
-            if str(data[count]) != 'nan':
-                data_count += 1
-            if data[count] == data[count + 1]:
-                instructors.pop(count + 1)
-                data.pop(count + 1)
-            count += 1
-        else:
-            count += 1
-            if str(data[count]) != 'nan':
-                data_count += 1
+        try:
+            if instructors[count] == instructors[count + 1]:
+                if str(data_which_check[count]) != 'nan':
+                    data_count += 1
+                if data_which_check[count] == data_which_check[count + 1]:
+                    instructors.pop(count + 1)
+                    data_which_check.pop(count + 1)
+                else:
+                    count += 1
+            else:
+                count += 1
+                if str(data_which_check[count]) != 'nan':
+                    data_count += 1
+        except:
+            instructors.pop(count)
+            data_which_check.pop(count)
+
+            mes = ' columns - %s, rows - %s' % (column_name, count + 1)
+            logger.info('Incorrect data in %s \n%s' % (header['Category'] + header['Subcategory'], mes))
     count += 1
-    return data, count, data_count
+    return data_which_check, count, data_count
 
 
-def fb_page(df):
-    data, size_, data_count = exclusive_instructors(df, df['Personal Facebook page?'])
+def fb_page(df,header):
+    data, size_, data_count = exclusive_instructors(df, df['Personal Facebook page?'],header)
     have_personal_page = len([i for i in data if i == 'Y'])
     not_have = size_ - data_count
     have_promotion_page = size_ - not_have - have_personal_page
@@ -305,9 +319,12 @@ def fb_page(df):
 
 
 def fb_likes(df):
-    data, size_, data_count = exclusive_instructors(df, df['FB likes'])
+    data = df['FB likes']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_1000 = len([i for i in data if 101 <= i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
@@ -323,9 +340,12 @@ def fb_likes(df):
 
 
 def fb_average_post(df):
-    data, size_, data_count = exclusive_instructors(df, df['posts per month'])
+    data = df['posts per month']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     have_1_10 = len([i for i in data if 0 < i <= 10]) / size_
     have_11_20 = len([i for i in data if 11 <= i <= 20]) / size_
     have_21_30 = len([i for i in data if 21 <= i <= 30]) / size_
@@ -340,8 +360,8 @@ def fb_average_post(df):
     return data
 
 
-def twitter_page(df):
-    data, size_, data_count = exclusive_instructors(df, df['Twitter'])
+def twitter_page(df,header):
+    data, size_, data_count = exclusive_instructors(df, df['Twitter'],header)
     percent = 100
     have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
@@ -354,9 +374,12 @@ def twitter_page(df):
 
 
 def twitter_tweets(df):
-    data, size_, data_count = exclusive_instructors(df, df['Tweets'])
+    data = df['Tweets']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
     have_10001_100000 = len([i for i in data if 10001 <= i <= 100000]) / size_
@@ -372,9 +395,12 @@ def twitter_tweets(df):
 
 
 def twitter_followers(df):
-    data, size_, data_count = exclusive_instructors(df, df['Followers'])
+    data = df['Followers']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
     have_10001_100000 = len([i for i in data if 10001 <= i <= 100000]) / size_
@@ -389,8 +415,8 @@ def twitter_followers(df):
     return data
 
 
-def youtube_account(df):
-    data, size_, data_count = exclusive_instructors(df, df['Youtube'])
+def youtube_account(df, header):
+    data, size_, data_count = exclusive_instructors(df, df['Youtube'], header)
     percent = 100
     have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
@@ -403,8 +429,11 @@ def youtube_account(df):
 
 
 def youtube_subscribers(df):
-    data, size_, data_count = exclusive_instructors(df, df['Youtube Subscribers'])
-    not_have = (size_ - data_count) / size_
+    data = df['Youtube Subscribers']
+    size_ = df['Position on page 1'].count()
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     percent = 100
@@ -423,9 +452,12 @@ def youtube_subscribers(df):
 
 
 def youtube_videos(df):
-    data, size_, data_count = exclusive_instructors(df, df['Youtube Videos'])
+    data = df['Youtube Videos']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
@@ -443,9 +475,12 @@ def youtube_videos(df):
 
 
 def youtube_views(df):
-    data, size_, data_count = exclusive_instructors(df, df['Youtube Subscribers'])
+    data = df['Youtube Subscribers']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
@@ -462,8 +497,8 @@ def youtube_views(df):
     return data
 
 
-def linked_in_account(df):
-    data, size_, data_count = exclusive_instructors(df, df['Linkedin'])
+def linked_in_account(df, header):
+    data, size_, data_count = exclusive_instructors(df, df['Linkedin'], header)
     percent = 100
     have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
@@ -476,9 +511,12 @@ def linked_in_account(df):
 
 
 def linked_in_connections(df):
-    data, size_, data_count = exclusive_instructors(df, df['Connections'])
+    data = df['Connections']
+    size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
+    not_have = (size_ - data.count())
+    not_have += len([i for i in data if 0 == i]) / size_
+    not_have /= size_
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_300 = len([i for i in data if 101 <= i <= 300]) / size_
     have_301_500 = len([i for i in data if 301 <= i <= 500]) / size_
@@ -494,14 +532,16 @@ def linked_in_connections(df):
 
 
 def linked_in_posts(df):
-    data, size_, data_count = exclusive_instructors(df, df['Posts'])
+    data = df['Posts']
     size_ = df['Position on page 1'].count()
     percent = 100
-    not_have = (size_ - data_count) / size_
-    have_1_10 = len([i for i in data if 0 < i <= 10]) / size_
-    have_11_30 = len([i for i in data if 11 <= i <= 30]) / size_
-    have_31_50 = len([i for i in data if 31 <= i <= 50]) / size_
-    have_more_50 = len([i for i in data if 50 < i]) / size_
+    not_have = (size_ - data.count())
+    not_have += float(len([i for i in data if 0 == i]))
+    not_have /= size_
+    have_1_10 = float(len([i for i in data if 0 < i <= 10])) / size_
+    have_11_30 = float(len([i for i in data if 11 <= i <= 30])) / size_
+    have_31_50 = float(len([i for i in data if 31 <= i <= 50])) / size_
+    have_more_50 = float(len([i for i in data if 50 < i])) / size_
     data = {
         label[name_graphs[12]][0]: not_have * percent,
         label[name_graphs[12]][1]: have_1_10 * percent,
