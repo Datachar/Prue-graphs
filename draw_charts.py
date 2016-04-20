@@ -96,7 +96,7 @@ def main():
         title[key] = '\n'.join(wrap(title[key], 50))
         draw_all_category_into_separate_files(dfs, header_data, y_label, key)
         draw_average_by_categories_into_single_file(dfs, header_data, y_label, key)
-    logger.info('*'*90)
+    logger.info('*' * 90)
 
 
 def draw_all_category_into_single_file(df, header_data, y_label, key):
@@ -295,15 +295,14 @@ def exclusive_instructors(df, data_which_check, header):
         except:
             instructors.pop(count)
             data_which_check.pop(count)
-
             mes = ' columns - %s, rows - %s' % (column_name, count + 1)
             logger.info('Incorrect data in %s \n%s' % (header['Category'] + header['Subcategory'], mes))
     count += 1
     return data_which_check, count, data_count
 
 
-def fb_page(df,header):
-    data, size_, data_count = exclusive_instructors(df, df['Personal Facebook page?'],header)
+def fb_page(df, header):
+    data, size_, data_count = exclusive_instructors(df, df['Personal Facebook page?'], header)
     have_personal_page = len([i for i in data if i == 'Y'])
     not_have = size_ - data_count
     have_promotion_page = size_ - not_have - have_personal_page
@@ -320,10 +319,13 @@ def fb_page(df,header):
 
 def fb_likes(df):
     data = df['FB likes']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Personal Facebook page?'][i] == 'N':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_1000 = len([i for i in data if 101 <= i <= 1000]) / size_
@@ -341,10 +343,13 @@ def fb_likes(df):
 
 def fb_average_post(df):
     data = df['posts per month']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Personal Facebook page?'][i] == 'N':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
     have_1_10 = len([i for i in data if 0 < i <= 10]) / size_
     have_11_20 = len([i for i in data if 11 <= i <= 20]) / size_
@@ -360,8 +365,8 @@ def fb_average_post(df):
     return data
 
 
-def twitter_page(df,header):
-    data, size_, data_count = exclusive_instructors(df, df['Twitter'],header)
+def twitter_page(df, header):
+    data, size_, data_count = exclusive_instructors(df, df['Twitter'], header)
     percent = 100
     have_personal_page = data_count
     not_have = (size_ - have_personal_page) / size_
@@ -375,10 +380,13 @@ def twitter_page(df,header):
 
 def twitter_tweets(df):
     data = df['Tweets']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Twitter'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
@@ -396,10 +404,13 @@ def twitter_tweets(df):
 
 def twitter_followers(df):
     data = df['Followers']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Twitter'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
@@ -430,13 +441,15 @@ def youtube_account(df, header):
 
 def youtube_subscribers(df):
     data = df['Youtube Subscribers']
-    size_ = df['Position on page 1'].count()
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
-    not_have /= size_
-    data = [0 if str(i) == 'nan' else i for i in data]
-    data = [float(str(i).replace(',', '')) for i in data]
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Youtube'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
+    not_have /= size_
+    data = [float(str(i).replace(',', '')) for i in data]
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_1000 = len([i for i in data if 101 <= i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
@@ -453,12 +466,14 @@ def youtube_subscribers(df):
 
 def youtube_videos(df):
     data = df['Youtube Videos']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Youtube'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
-    data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_300 = len([i for i in data if 101 <= i <= 300]) / size_
@@ -476,12 +491,14 @@ def youtube_videos(df):
 
 def youtube_views(df):
     data = df['Youtube Subscribers']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Youtube'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
-    data = [0 if str(i) == 'nan' else i for i in data]
     data = [float(str(i).replace(',', '')) for i in data]
     have_1_1000 = len([i for i in data if 0 < i <= 1000]) / size_
     have_1001_10000 = len([i for i in data if 1001 <= i <= 10000]) / size_
@@ -512,10 +529,13 @@ def linked_in_account(df, header):
 
 def linked_in_connections(df):
     data = df['Connections']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Linkedin'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
-    not_have += len([i for i in data if 0 == i]) / size_
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have /= size_
     have_1_100 = len([i for i in data if 0 < i <= 100]) / size_
     have_101_300 = len([i for i in data if 101 <= i <= 300]) / size_
@@ -533,9 +553,13 @@ def linked_in_connections(df):
 
 def linked_in_posts(df):
     data = df['Posts']
-    size_ = df['Position on page 1'].count()
+    for i, d in enumerate(data):
+        if str(d) == 'nan':
+            if df['Linkedin'][i] != 'nan':
+                data.set_value(i, 0)
     percent = 100
-    not_have = (size_ - data.count())
+    size_ = data.count()
+    not_have = len([i for i in data if 0 == i])
     not_have += float(len([i for i in data if 0 == i]))
     not_have /= size_
     have_1_10 = float(len([i for i in data if 0 < i <= 10])) / size_
